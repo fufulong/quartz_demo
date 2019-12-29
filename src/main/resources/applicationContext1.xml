@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--suppress SpringFacetInspection -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- 1.先配置SimpleJob相关 Bean-->
+    <bean id="simpleJob" class="com.fufulong.xmlType.SimpleJob"></bean>
+    <bean id="simpleJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="simpleJob"/>
+        <property name="targetMethod" value="printDate"/>
+        <!--不允许并发-->
+        <property name="concurrent" value ="false"/>
+    </bean>
+
+
+    <bean id="simpleTriggerFactoryBean" class ="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
+        <!--任务详情-->
+        <property name="jobDetail" ref="simpleJobDetail"/>
+        <!--总共执行几次-->
+        <property name="repeatCount" value="9"/>
+        <!-- 执行优先级-->
+        <property name="priority" value="1"/>
+        <property name="description" value="simpleJob"/>
+        <!-- 第一次执行在1秒后,单位毫秒-->
+        <property name="startDelay" value="1000"/>
+        <!-- 每次执行之间的间隔时间 2秒,单位:毫秒-->
+        <property name="repeatInterval" value="2000"/>
+
+    </bean>
+
+    <!-- 2.配置 cron任务的触发器和JobDetail-->
+    <bean id="cronJob" class="com.fufulong.xmlType.CronJob"/>
+    <bean id ="cronJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="cronJob"/>
+        <property name="targetMethod" value="printDate"/>
+
+    </bean>
+    <bean id ="cronTriger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="cronJobDetail"/>
+        <property name="cronExpression" value="0/3 * * * * ?"/>
+    </bean>
+
+
+
+    <!-- 配置 任务调度器,把需要启动的触发器放进去-->
+    <bean id="springJobSchedulerFactoryBean" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="simpleTriggerFactoryBean"/>
+                <ref bean="cronTriger"/>
+            </list>
+        </property>
+    </bean>
+
+</beans>
